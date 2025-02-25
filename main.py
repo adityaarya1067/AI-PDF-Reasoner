@@ -1,4 +1,5 @@
 import streamlit as st
+import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PDFPlumberLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -7,7 +8,12 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 
+# Load environment variables
+load_dotenv()
 
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    raise ValueError("GROQ_API_KEY not found in environment variables")
 
 custom_prompt_template = """
 Use the pieces of information provided in the context to answer user's question.
@@ -18,23 +24,21 @@ Context: {context}
 Answer:
 """
 
-
 ollama_model_name="deepseek-r1:7b"
 embeddings = OllamaEmbeddings(model="deepseek-r1:7b")
 FAISS_DB_PATH="vectorstore/db_faiss"
-
-
 pdfs_directory = 'pdfs/'
 
-# Load environment variables
-load_dotenv()
-
-# Update the Groq initialization with API key
+# Initialize Groq with API key
 llm_model = ChatGroq(
     temperature=0.7,
-    groq_api_key="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",
+    groq_api_key=api_key,
     model="deepseek-r1-distill-llama-70b"
 )
+
+# Create necessary directories if they don't exist
+os.makedirs(pdfs_directory, exist_ok=True)
+os.makedirs(os.path.dirname(FAISS_DB_PATH), exist_ok=True)
 
 def upload_pdf(file):
     with open(pdfs_directory + file.name, "wb") as f:
@@ -107,7 +111,7 @@ if ask_question:
         response=answer_query(documents=retrieved_docs, model=llm_model, query=user_query)
 
         st.chat_message("user").write(user_query)
-        st.chat_message("AI PDF Reasoner").write(response)
+        st.chat_message("AI Lawyer").write(response)
 
     else:
         st.error("Kindly upload a valid PDF file and/or ask a valid Question!")
