@@ -8,7 +8,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_community.vectorstores import FAISS
 from langchain_groq import ChatGroq
 
-# Load environment variables
+
 load_dotenv()
 
 api_key = os.getenv("GROQ_API_KEY")
